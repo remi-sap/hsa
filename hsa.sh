@@ -56,12 +56,8 @@ parse_params(){
 stop_project() {
   #send in background and wait
   $SCA_CMD --workspace-name=${WK} --project-name=${PRJ} --stop_project &
-  sleep 1
-  for i in {1..5} do
-      
-     sleep 10
-  done
-     
+  #TODO
+  #sleep, retry, and then force stop   
 }
 is_project_running() {
   print_projects | grep "${WK}/${PRJ}" | wc -l
