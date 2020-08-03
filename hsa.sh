@@ -16,7 +16,7 @@ usage() {
   echo ""
   echo $0 ":  <URI> <workspace> <user> <password> [ <ccl file> ] "
   echo "	<uri>:  esps://localhost:30059  https could be used instead of esps"
-  echo "	<workspace"
+  echo "	<workspace>"
   echo "	<user>"
   echo "	<password>: Either the password, or the location of a file containing the password"
   echo "        [ <ccl_file> ] If not specified, print the status of all projects."
@@ -27,6 +27,7 @@ parse_params(){
 
   if [[ ${PARAMS} -le 3 ]] ; then
     usage
+    exit -1
   fi
 
   [[ -f ${PASS} ]] && PASS=$(<${PASS})
@@ -48,17 +49,42 @@ parse_params(){
     PRJ=$(basename ${CCL}| sed -e 's/\.ccl$//' )
     compile
     #stop_project    
-    is_project_running
+    is_started=$(is_project_running)
+    if [[ $is_started -eq 1 ]]; then
+       stop_project
+       delete_project
+    fi
+    add_project
+    start_project
   fi
   
 }
+start_project(){
+	mylog "starting ${WK}/${PRJ}.."
+	$SCA_CMD --workspace-name=${WK} --project-name=${PRJ} --start_project
+}
+add_project(){
+	mylog "adding ${CCL} in project ${WK}/${PRJ}.."
+	CCX=/tmp/${PRJ}.ccx
+	if [[ -f "${PRJ}.ccr" ]]; then
+		CCR="-ccr ${PRJ}.ccr"
+	else
+		CCR=""
+	fi
+	$SCA_CMD --workspace-name=${WK} --project-name=${PRJ} --add_project -ccx ${CCX} ${CCR}
+}
 
 stop_project() {
-  #send in background and wait
-  $SCA_CMD --workspace-name=${WK} --project-name=${PRJ} --stop_project &
+   mylog "Stopping ${WK}/${PRJ}" 
+  $SCA_CMD --workspace-name=${WK} --project-name=${PRJ} --stop_project
   #TODO
   #sleep, retry, and then force stop   
 }
+delete_project() {
+  mylog "Removing ${WK}/${PRJ}"
+  $SCA_CMD --workspace-name=${WK} --project-name=${PRJ} --remove_project 
+}
+
 is_project_running() {
   print_projects | grep "${WK}/${PRJ}" | wc -l
 }
@@ -102,5 +128,3 @@ compile() {
 }
 
 parse_params
-
-
