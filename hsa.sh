@@ -10,6 +10,8 @@ PARAMS=$#
   PASS=${4}
   CCL=${5}
 
+unset STREAMING_CUSTOM_ADAPTERS_HOME
+
 
 usage() {
   echo "Usage of ${0}"
@@ -55,7 +57,7 @@ parse_params(){
        delete_project
     fi
     add_project
-    start_project
+    #start_project
   fi
   
 }
@@ -128,3 +130,4 @@ compile() {
 }
 
 parse_params
+
